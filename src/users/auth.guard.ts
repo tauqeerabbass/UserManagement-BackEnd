@@ -1,15 +1,24 @@
-import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+// import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+// import { JwtService } from "@nestjs/jwt";
 
-@Injectable()
-export class AuthGuard implements CanActivate{
-    canActivate(context: ExecutionContext): boolean {
-        const req = context.switchToHttp().getRequest();
-        const token = req.headers['authorization'];
+// @Injectable()
+// export class AuthGuard implements CanActivate{
+//     constructor(private jwtService: JwtService){}
+//     canActivate(context: ExecutionContext): boolean {
+//         const req = context.switchToHttp().getRequest();
+//         const header = req.headers.authorization;
+//         if(!header){
+//             console.log("No authorization header found");
+//             return false;
+//         }
+//         const token = header.split(" ")[1];
 
-        if (!token || token !== "Bearer secret123"){
-            console.log("User is not authorized")
-            return false;
-        }
-        return true;
-    }
-}
+//         try {
+//             const payload = this.jwtService.verify(token, {secret: process.env.NESTAUTH_SECRET});
+//             req.user = payload;
+//             return true;
+//         } catch (error) {   
+//             throw new Error("Error in auth guard" + error.message);
+//         }
+//     }
+// }

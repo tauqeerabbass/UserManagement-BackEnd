@@ -10,7 +10,6 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
-import { AuthGuard } from './auth.guard';
 import { User } from './user.entity';
 import { CreateUserDTO } from 'src/dto/CreateUserDto.dto';
 
@@ -43,7 +42,6 @@ export class UsersController {
     return this.usersService.update(id, user);
   }
 
-  @UseGuards(AuthGuard)
   @Delete(':id')
   delete(@Param('id') id: number): Promise<void> {
     return this.usersService.delete(id);
