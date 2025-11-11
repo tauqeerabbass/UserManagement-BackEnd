@@ -4,14 +4,17 @@ import {
   Delete,
   Get,
   Param,
-  Patch,
   Post,
   Put,
-  UseGuards,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { User } from './user.entity';
 import { CreateUserDTO } from 'src/dto/CreateUserDto.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('users')
 export class UsersController {
@@ -33,8 +36,32 @@ export class UsersController {
   }
 
   @Post()
-  create(@Body() CreateUserDTO: CreateUserDTO): Promise<User> {
-    return this.usersService.create(CreateUserDTO);
+  @UseInterceptors(
+    FileInterceptor('photo', {
+      storage: diskStorage({
+        destination: './uploads/users',
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+        },
+      }),
+    }),
+  )
+  async create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createUserDto: CreateUserDTO,
+  ): Promise<User> {
+    console.log('Received file:', file);
+    const photoPath = file
+      ? `${process.env.BACKEND_URL || 'http://localhost:3000'}/uploads/users/${file.filename}`
+      : undefined;
+
+    return this.usersService.create({
+      ...createUserDto,
+      photo: photoPath,
+    });
   }
 
   @Put(':id')

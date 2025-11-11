@@ -53,14 +53,26 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDTO): Promise<User> {
-    // 1. Hash the password before saving
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+    const emailToAdd = createUserDto.email.toLowerCase();
 
-    // 2. Create the user entity with the hashed password
+    const existingUser = await this.userRepository.findOne({
+      where: { email: emailToAdd },
+    });
+    if (existingUser) {
+      throw new Error('Email already exists.');
+    }
+
+    const photoToAdd =
+      createUserDto.photo ??
+      'https://blogs.a-sports.tv/wp-content/uploads/2025/11/babar-azam-1.jpg';
+
     const user = this.userRepository.create({
       ...createUserDto,
-      password: hashedPassword, // 👈 Store the hashed password
+      email: emailToAdd,
+      password: hashedPassword,
+      photo: photoToAdd,
     });
 
     return this.userRepository.save(user);

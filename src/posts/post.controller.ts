@@ -51,8 +51,8 @@ export class PostController {
     }
 
     const userData = new userDataDTO();
-    userData.id = post.user.id;
-    userData.name = post.user.name;
+    userData.id = post.user?.id ?? null;
+    userData.name = post.user?.name ?? 'Unknown User';
 
     const postDTO = new PostWithUserDTO();
     postDTO.id = post.id;
@@ -91,7 +91,7 @@ export class PostController {
   @Get('search/:query')
   async search(@Param('query') query: string) {
     const posts = await this.postService.search(query);
-
+      // return posts;
     if (!posts.length) {
       throw new NotFoundException('No posts found for this search term');
     }
