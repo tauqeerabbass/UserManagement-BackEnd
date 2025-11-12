@@ -27,23 +27,31 @@ export class postService {
   }
 
   async findOne(id: number): Promise<Posts> {
-    const post = await this.postRepository.findOne({
-      where: { id },
-      relations: ['user'],
-    });
-    if (!post) throw new NotFoundException('Post not found.');
-    return post;
+    try {
+      const post = await this.postRepository.findOne({
+        where: { id },
+        relations: ['user'],
+      });
+      if (!post) throw new NotFoundException('Post not found.');
+      return post;
+    } catch (error) {
+      throw error;
+    }
   }
 
   async findByUserId(userId: number): Promise<Posts[]> {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-    });
-    if (!user) throw new NotFoundException('User not found');
-    return this.postRepository.find({
-      where: { user: { id: userId } } as any,
-      relations: ['user'],
-    });
+    try {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
+      if (!user) throw new NotFoundException('User not found');
+      return this.postRepository.find({
+        where: { user: { id: userId } } as any,
+        relations: ['user'],
+      });
+    } catch (error) {
+      throw error;
+    }
   }
 
   async search(query: string): Promise<Posts[]> {
@@ -88,41 +96,54 @@ export class postService {
     postData: Partial<Posts>,
     userId: number,
   ): Promise<Posts> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
+    try {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (!user) throw new NotFoundException('User not found');
 
-    const newPost = this.postRepository.create({ ...postData, user });
-    return this.postRepository.save(newPost);
+      const newPost = this.postRepository.create({ ...postData, user });
+      return this.postRepository.save(newPost);
+    } catch (error) {
+      throw error;
+    }
   }
 
   create(post: Partial<Posts>): Promise<Posts> {
-    const newPost = this.postRepository.create(post);
-    return this.postRepository.save(newPost);
+    try {
+      const newPost = this.postRepository.create(post);
+      return this.postRepository.save(newPost);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async update(
     id: number,
     update: Partial<Posts> & { user_Id?: number },
   ): Promise<Posts> {
-    const post = await this.postRepository.findOne({
-      where: { id },
-      relations: ['user'],
-    });
-    if (!post) throw new NotFoundException('Post not found.');
-
-    if (update.user_Id) {
-      const user = await this.userRepository.findOne({
-        where: { id: update.user_Id },
+    try {
+      const post = await this.postRepository.findOne({
+        where: { id },
+        relations: ['user'],
       });
-      if (!user) throw new NotFoundException('User not found.');
-      post.user = user;
+      if (!post) throw new NotFoundException('Post not found.');
+
+      if (update.user_Id) {
+        const user = await this.userRepository.findOne({
+          where: { id: update.user_Id },
+        });
+        if (!user) throw new NotFoundException('User not found.');
+        post.user = user;
+      }
+
+      if (update.title !== undefined) post.title = update.title;
+      if (update.content !== undefined) post.content = update.content;
+      if (update.description !== undefined)
+        post.description = update.description;
+
+      return this.postRepository.save(post);
+    } catch (error) {
+      throw error;
     }
-
-    if (update.title !== undefined) post.title = update.title;
-    if (update.content !== undefined) post.content = update.content;
-    if (update.description !== undefined) post.description = update.description;
-
-    return this.postRepository.save(post);
   }
 
   async delete(id: number): Promise<void> {

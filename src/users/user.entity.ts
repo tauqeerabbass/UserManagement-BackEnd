@@ -17,8 +17,7 @@ export class User {
 
   @Column({
     nullable: true,
-    default:
-      'https://img.freepik.com/premium-vector/user-profile-icon-flat-style-member-avatar-vector-illustration-isolated-background-human-permission-sign-business-concept_157943-15752.jpg',
+    default: process.env.DEFAULT_AVATAR_URL,
   })
   photo: string;
 

@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
@@ -15,6 +16,8 @@ import { CreateUserDTO } from 'src/dto/CreateUserDto.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { AuthGuard } from './auth.guard';
+import { JwtAuthGuard } from 'src/JwtAuthGuard';
 
 @Controller('users')
 export class UsersController {
@@ -24,7 +27,7 @@ export class UsersController {
   async getAll(): Promise<User[]> {
     return await this.usersService.findAll();
   }
-
+  
   @Get(':id')
   getOne(@Param('id') id: number): Promise<User> {
     return this.usersService.findOne(id);

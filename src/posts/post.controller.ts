@@ -30,6 +30,7 @@ export class PostController {
       const userData = new userDataDTO();
       userData.id = post?.user?.id;
       userData.name = post?.user?.name;
+      userData.photo = post?.user?.photo;
 
       const postDTO = new PostWithUserDTO();
       postDTO.id = post.id;
@@ -53,6 +54,7 @@ export class PostController {
     const userData = new userDataDTO();
     userData.id = post.user?.id ?? null;
     userData.name = post.user?.name ?? 'Unknown User';
+    userData.photo = post.user?.photo;
 
     const postDTO = new PostWithUserDTO();
     postDTO.id = post.id;
@@ -76,6 +78,7 @@ export class PostController {
       const userData = new userDataDTO();
       userData.id = post.user.id;
       userData.name = post.user.name;
+      userData.photo = post.user.photo;
 
       const postDTO = new PostWithUserDTO();
       postDTO.id = post.id;
@@ -91,7 +94,7 @@ export class PostController {
   @Get('search/:query')
   async search(@Param('query') query: string) {
     const posts = await this.postService.search(query);
-      // return posts;
+    // return posts;
     if (!posts.length) {
       throw new NotFoundException('No posts found for this search term');
     }
@@ -102,8 +105,13 @@ export class PostController {
       content: post.content,
       description: post.description,
       user: post.user
-        ? { id: post.user.id, name: post.user.name }
-        : { id: null, name: 'Unknown User' },
+        ? { id: post.user.id, name: post.user.name, photo: post.user.photo }
+        : {
+            id: null,
+            name: 'Unknown User',
+            photo:
+              'https://images.unsplash.com/photo-1611859266238-4b98091d9d9b?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bmlzc2FuJTIwcjM1JTIwZ3RyfGVufDB8fDB8fHww&fm=jpg&q=60&w=3000',
+          },
     }));
   }
 

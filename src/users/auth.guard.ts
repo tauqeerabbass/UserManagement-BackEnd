@@ -1,24 +1,35 @@
-// import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-// import { JwtService } from "@nestjs/jwt";
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
-// @Injectable()
-// export class AuthGuard implements CanActivate{
-//     constructor(private jwtService: JwtService){}
-//     canActivate(context: ExecutionContext): boolean {
-//         const req = context.switchToHttp().getRequest();
-//         const header = req.headers.authorization;
-//         if(!header){
-//             console.log("No authorization header found");
-//             return false;
-//         }
-//         const token = header.split(" ")[1];
+@Injectable()
+export class AuthGuard implements CanActivate {
+  constructor(private jwtService: JwtService) {}
+  canActivate(context: ExecutionContext): boolean {
+    const req = context.switchToHttp().getRequest();
+    const header = req.headers.authorization;
+    if (!header) {
+      throw new UnauthorizedException('Authorization header missing');
+    }
+    const token = header.split(' ')[1];
 
-//         try {
-//             const payload = this.jwtService.verify(token, {secret: process.env.NESTAUTH_SECRET});
-//             req.user = payload;
-//             return true;
-//         } catch (error) {   
-//             throw new Error("Error in auth guard" + error.message);
-//         }
-//     }
-// }
+    const [scheme] = header.split(' ');
+    if (!token || scheme !== 'Bearer') {
+      throw new UnauthorizedException('Invalid authorization format');
+    }
+
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret: process.env.NESTAUTH_SECRET,
+      });
+      req.user = payload;
+      return true;
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
+  }
+}
