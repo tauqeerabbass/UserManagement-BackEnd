@@ -15,6 +15,9 @@ export class Posts{
     @Column()
     description: string;
 
+    @Column({nullable: false})
+    postPhoto: string;
+
     @ManyToOne(()=>User, (user) => user.posts, {onDelete: "CASCADE"})
     @JoinColumn({name: 'userId'})
     user: User;

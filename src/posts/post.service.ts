@@ -97,12 +97,25 @@ export class postService {
     userId: number,
   ): Promise<Posts> {
     try {
-      const user = await this.userRepository.findOne({ where: { id: userId } });
-      if (!user) throw new NotFoundException('User not found');
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+      });
 
-      const newPost = this.postRepository.create({ ...postData, user });
-      return this.postRepository.save(newPost);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
+      const newPost = this.postRepository.create({
+        title: postData.title,
+        content: postData.content,
+        description: postData.description || '',
+        postPhoto: postData.postPhoto,
+        user: user,
+      });
+
+      return await this.postRepository.save(newPost);
     } catch (error) {
+      console.error('Error in createForUser:', error);
       throw error;
     }
   }
@@ -139,6 +152,7 @@ export class postService {
       if (update.content !== undefined) post.content = update.content;
       if (update.description !== undefined)
         post.description = update.description;
+      if (update.postPhoto !== undefined) post.postPhoto = update.postPhoto;
 
       return this.postRepository.save(post);
     } catch (error) {

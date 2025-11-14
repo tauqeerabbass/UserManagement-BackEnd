@@ -7,12 +7,17 @@ import {
   Param,
   Post,
   Put,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { Posts } from './post.entity';
 import { postService } from './post.service';
 import { PostWithUserDTO } from 'src/dto/postWithUser.dto';
 import { userDataDTO } from 'src/dto/userData.dto';
 import { CreatePostDTO } from 'src/dto/create-post.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('posts')
 export class PostController {
@@ -37,6 +42,7 @@ export class PostController {
       postDTO.title = post.title;
       postDTO.content = post.content;
       postDTO.description = post.description;
+      postDTO.postPhoto = post.postPhoto;
       postDTO.user = userData;
 
       return postDTO;
@@ -61,6 +67,7 @@ export class PostController {
     postDTO.title = post.title;
     postDTO.content = post.content;
     postDTO.description = post.description;
+    postDTO.postPhoto = post.postPhoto;
     postDTO.user = userData;
 
     return postDTO;
@@ -85,6 +92,7 @@ export class PostController {
       postDTO.title = post.title;
       postDTO.content = post.content;
       postDTO.description = post.description;
+      postDTO.postPhoto = post.postPhoto;
       postDTO.user = userData;
 
       return postDTO;
@@ -104,6 +112,7 @@ export class PostController {
       title: post.title,
       content: post.content,
       description: post.description,
+      postPhoto: post.postPhoto,
       user: post.user
         ? { id: post.user.id, name: post.user.name, photo: post.user.photo }
         : {
@@ -116,12 +125,47 @@ export class PostController {
   }
 
   @Post('user/:userId')
-  async createForUser(
+  @UseInterceptors(
+    FileInterceptor('postPhoto', {
+      storage: diskStorage({
+        destination: './uploads/posts',
+        filename: (req, file, callback) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+        },
+      }),
+    }),
+  )
+  async create(
     @Param('userId') userId: number,
-    @Body() CreatePostDTO: CreatePostDTO,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() createPostDto: CreatePostDTO,
   ): Promise<Posts> {
-    return await this.postService.createForUser(CreatePostDTO, userId);
+    console.log('USER ID:', userId);
+    console.log('Received file:', file);
+
+    const photoPath = file
+      ? `${process.env.BACKEND_URL || 'http://localhost:3000'}/uploads/posts/${file.filename}`
+      : undefined;
+
+    return this.postService.createForUser(
+      {
+        ...createPostDto,
+        postPhoto: photoPath,
+      },
+      userId,
+    );
   }
+
+  // @Post('user/:userId')
+  // async createForUser(
+  //   @Param('userId') userId: number,
+  //   @Body() CreatePostDTO: CreatePostDTO,
+  // ): Promise<Posts> {
+  //   return await this.postService.createForUser(CreatePostDTO, userId);
+  // }
 
   @Put(':id')
   update(
@@ -130,6 +174,37 @@ export class PostController {
   ): Promise<Posts> {
     return this.postService.update(id, post);
   }
+
+  // @Put(':id')
+  // @UseInterceptors(
+  //   FileInterceptor('postPhoto', {
+  //     storage: diskStorage({
+  //       destination: './uploads/posts',
+  //       filename: (req, file, callback) => {
+  //         const uniqueSuffix =
+  //           Date.now() + '-' + Math.round(Math.random() * 1e9);
+  //         const ext = extname(file.originalname);
+  //         callback(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
+  //       },
+  //     }),
+  //   }),
+  // )
+  // async updatePost(
+  //   @Param('id') id: number,
+  //   @UploadedFile() file: Express.Multer.File,
+  //   @Body() body: Partial<Posts> & { user_Id?: number },
+  // ): Promise<Posts> {
+  //   try {
+  //     const updateData: Partial<Posts> & { user_Id?: number } = { ...body };
+  //     if (file) {
+  //       updateData.postPhoto = `${process.env.BACKEND_URL || 'http://localhost:3000'}/uploads/posts/${file.filename}`;
+  //     }
+  //     return await this.postService.update(id, updateData);
+  //   } catch (error) {
+  //     console.error('Error updating post:', error);
+  //     throw error;
+  //   }
+  // }
 
   @Delete(':id')
   delete(@Param('id') id: number): Promise<void> {

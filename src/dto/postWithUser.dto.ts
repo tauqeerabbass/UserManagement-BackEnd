@@ -4,5 +4,6 @@ export class PostWithUserDTO {
   title: string;
   content: string;
   description: string;
+  postPhoto: string;
   user: userDataDTO;
 }
